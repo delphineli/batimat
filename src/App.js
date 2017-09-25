@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import {InstantSearch, SearchBox, RefinementList, Menu} from 'react-instantsearch/dom';
 import { compose } from "recompose";
 import {connectHits} from "react-instantsearch/connectors";
+import algoliasearch from 'algoliasearch'
 import {
   withScriptjs,
   withGoogleMap,
@@ -12,24 +12,37 @@ import {
 } from "react-google-maps";
 
 
+
 const MapWithAMarker = compose(
   withScriptjs,
   withGoogleMap
 )(props => {
-  const {markers} = props.hits;
 
-  return (
-   <GoogleMap
-   defaultZoom={8}
-   defaultCenter={{ lat: -34.397, lng: 150.644 }}
-   >
-   { props.hits.map((marker, index) =>
-     <Marker
-       position={{ lat:marker._geoloc.lat, lng: marker._geoloc.lng }}
-     />
-   )}
-   </GoogleMap>
-  );
+  if(props.markers.length > 0){
+    console.log(props.markers[0]);
+    return (
+      <GoogleMap
+        defaultZoom={8}
+        defaultCenter={{ lat: -34.397, lng: 150.644 }}
+      >
+        { props.markers.map((marker, index) =>
+          <Marker
+            position={{ lat:marker._geoloc.lat, lng: marker._geoloc.lng }}
+          />
+        )}
+      </GoogleMap>
+    );
+  }
+  else{
+    return (
+      <GoogleMap
+        defaultZoom={8}
+        defaultCenter={{ lat: -34.397, lng: 150.644 }}
+      >
+      </GoogleMap>
+    );
+  }
+
 });
 
 const ConnectedMap = connectHits(MapWithAMarker);
@@ -55,7 +68,8 @@ class App extends Component {
     this.state = {
       trade: '',
       pc:'',
-      radius:''
+      radius:'',
+      markers:[]
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -75,13 +89,15 @@ class App extends Component {
   handleSubmit(event) {
      event.preventDefault();
      alert('A name was submitted: ' + this.state.trade + this.state.pc + this.state.radius);
-    var client = algoliasearch("TIM81UW1UV", "833cbf062e3b7c3979155c0d07e3f058");
-    var index = client.initIndex('batimat_dev');
+    const client = algoliasearch("TIM81UW1UV", "833cbf062e3b7c3979155c0d07e3f058");
+    const index = client.initIndex('batimat_dev');
     index.search({
       query: this.state.trade,
       aroundRadius: this.state.radius
     }).then(res => {
-       console.log(res);
+      this.setState({
+        markers: res.hits
+      });
     });
   }
 
@@ -114,6 +130,13 @@ class App extends Component {
 
           <input type="submit" value="Imprimer" />
         </form>
+          <MapWithAMarker
+            googleMapURL="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places"
+            loadingElement={<div style={{ height: `100%` }} />}
+            containerElement={<div style={{ height: `400px` }} />}
+            mapElement={<div style={{ height: `100%` }} />}
+            markers={this.state.markers}
+          />
         </div>
       </div>
     );
