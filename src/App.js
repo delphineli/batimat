@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
+import exemple from './example.jpg';
 import './App.css';
 import { compose, withProps, withStateHandlers } from "recompose";
 import algoliasearch from 'algoliasearch';
-import algoliasearchHelper from 'algoliasearch-helper';
+import MarkerClusterer from "react-google-maps/lib/components/addons/MarkerClusterer";
 import styled from 'styled-components';
 import {
   withScriptjs,
@@ -93,7 +94,13 @@ const MapWithAMarker = compose(
           defaultZoom={10}
           defaultCenter={{ lat: 48.8566, lng: 2.3522}}
         >
+          <MarkerClusterer
+            averageCenter
+            enableRetinaIcons
+            gridSize={60}
+          >
         { props.markers.map((marker, index) =>(<MarkerWithInfoWindows marker={marker} key={index} isOpen={props.isOpen} />))}
+          </MarkerClusterer>
         </GoogleMap>
       );
 });
@@ -141,9 +148,10 @@ class App extends Component {
     const index = client.initIndex('batimat_dev');
 
     index.search({
-      query: this.state.pc,
+      query: '',
       facetFilters: [["trade:" + this.state.trade]],
-      aroundRadius: this.state.radius
+      aroundLatLng: "45.732831,5.657159",
+      aroundRadius: this.state.radius,
     }).then(res => {
       this.setState({
         markers: res.hits,
@@ -174,6 +182,13 @@ class App extends Component {
           </label>
           <label>
             Votre métier:
+            <div>
+              <img src={exemple} alt="logo" />
+              <img />
+              <img />
+              <img />
+              <img />
+            </div>
             <select name="trade" value={this.state.trade} onChange={this.handleInputChange}>
               <option value="patrimoine">patrimoine</option>
               <option value="fenetres">Fenêtres</option>
